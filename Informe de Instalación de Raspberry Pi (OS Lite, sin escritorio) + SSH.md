@@ -6,6 +6,16 @@
 
 **Fecha:** _12/09/2025_
 
+## Índice
+- Lista de verificación
+- Pasos especificados
+- Fotos de cada punto
+- Conclusión
+
+
+## Objetivo
+El objetivo de este informe es instalar Raspberry Pi OS Lite en una Raspberry Pi 3, configurarla correctamente y establecer una conexión remota por SSH desde otra máquina.
+
 ## Lista de verificación
 
 -  Descargar e instalar **Raspberry Pi Imager** en la PC.
@@ -38,11 +48,20 @@
 	- Desactivamos la telemetría 
 	
 4. Primer arranque y descubrir IP:
-	- Para descubrir la IP escribimos en la terminal: ip a ó hostname -I
+	- Para descubrir la IP escribimos en la terminal: ip a 
+		- `ip`: herramienta para mostrar y manipular las interfaces de red.
+		- `a` (address): muestra las direcciones IP asignadas al equipo.
+	- hostname -I
+		- `hostname`: muestra el nombre de la máquina en la red.
+		- `I`: devuelve la(s) IP(s) asignadas al host.
 	- IP: 192.168.60.114
 
 5. Conexión por SSH: 
-	- Escribimos en la terminal: ssh grupo5@192.168.60.114 después ponemos la contraseña del grupo que se definió en el punto 3 *grupo52025*
+	- Escribimos en la terminal: ssh grupo5@192.168.60.114 
+		- `ssh`: abre una conexión segura a otra máquina usando el protocolo SSH.
+		- `grupo5`: es el usuario configurado en la Raspberry Pi.
+		- `192.168.60.114`: es la IP de la Raspberry Pi.
+	- después ponemos la contraseña del grupo que se definió en el punto 3 *grupo52025*
 ## Fotos de cada punto:
 
 1. ![[Pasted image 20250912113705.png]]
