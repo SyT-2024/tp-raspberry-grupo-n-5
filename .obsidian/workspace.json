@@ -25,17 +25,14 @@
             "id": "7950c58ba5506a67",
             "type": "leaf",
             "state": {
-              "type": "canvas",
+              "type": "markdown",
               "state": {
-                "file": "Untitled.canvas",
-                "viewState": {
-                  "x": 0,
-                  "y": 0,
-                  "zoom": 0
-                }
+                "file": "Informe de Instalación de Raspberry Pi (OS Lite, sin escritorio) + SSH.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-layout-dashboard",
-              "title": "Untitled"
+              "icon": "lucide-file",
+              "title": "Informe de Instalación de Raspberry Pi (OS Lite, sin escritorio) + SSH"
             }
           }
         ],
@@ -189,12 +186,12 @@
   },
   "active": "7950c58ba5506a67",
   "lastOpenFiles": [
-    "tp-raspberry-grupo-n-5",
-    "Untitled.canvas",
+    "Blank 5 Grids Collage.png",
     "Informe de Instalación de Raspberry Pi (OS Lite, sin escritorio) + SSH.md",
+    "Untitled.canvas",
+    "tp-raspberry-grupo-n-5",
     "Pasted image 20250912114346.jpg",
     "Pasted image 20250912114325.jpg",
-    "Blank 5 Grids Collage.png",
     "Pasted image 20250912113705.png",
     "Pasted image 20250912113623.png",
     "Pasted image 20250912112217.png",

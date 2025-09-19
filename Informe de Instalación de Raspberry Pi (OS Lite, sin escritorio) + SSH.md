@@ -26,12 +26,12 @@
 
 **Práctica.**
 
-1. Descargar **Raspberry Pi Imager**: [https://www.raspberrypi.com/software](https://www.raspberrypi.com/software)
+1. Descargar **Raspberry Pi Imager**
     
 2. Instalarlo en la PC.
     
 3. Preparar: 
-	- Nombre del anfitrion: Grupo5
+	- Nombre del anfitrión: Grupo5
 	- Establecemos nombre de usuario y contraseña 
 	- Establecemos los ajustes regionales
 	- Activamos el SSH y ponemos la autenticación por contraseña
@@ -51,5 +51,11 @@
 4. ![[Pasted image 20250912114325.jpg]]
 5. ![[Pasted image 20250912114346.jpg]]
 ## Conclusión:
+
+Con esta actividad aprendimos a instalar y poner en funcionamiento una Raspberry Pi desde cero. Pudimos seguir los pasos básicos: preparar la tarjeta de memoria, configurar el usuario y la contraseña, y finalmente conectarnos desde otra computadora usando SSH.
+
+En la parte teórica entendimos que la Raspberry Pi es una computadora de bajo costo que, con un sistema operativo liviano, se puede usar como servidor o para distintos proyectos educativos y caseros.
+
+Al principio tuvimos algunas confusiones, como equivocarnos en la versión del sistema que había que grabar, pero esos errores nos ayudaron a entender mejor el proceso y a corregirnos en grupo. En general, la práctica nos sirvió para conocer cómo se prepara y maneja una Raspberry Pi sin necesidad de monitor o teclado, y nos dio una primera experiencia de cómo se trabaja con estas herramientas en la vida real.
 
 
