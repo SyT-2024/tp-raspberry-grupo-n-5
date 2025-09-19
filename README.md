@@ -12,7 +12,7 @@ Cada actividad está organizada en su propia carpeta e incluye un README con el 
 
 ## 📑 Índice de Actividades
 
-1. [Instalación de Raspberry Pi OS Lite y conexión por SSH](./Primer%20entrega%20-%20Raspberry%20y%20SSH/README.md)  
+1. [Instalación de Raspberry Pi OS Lite y conexión por SSH](./Primer%20entrega%20-%20Raspberry%20y%20SSH/Informe de Instalación de Raspberry Pi (OS Lite, sin escritorio) + SSH.md)  
 
 *(a medida que se agreguen más actividades, sumarlas aquí con sus respectivos enlaces)*
 
