@@ -64,11 +64,12 @@ El objetivo de este informe es instalar Raspberry Pi OS Lite en una Raspberry Pi
 	- después ponemos la contraseña del grupo que se definió en el punto 3 *grupo52025*
 ## Fotos de cada punto:
 
-1. ![[Pasted image 20250912113705.png]]
-2.  ![[Pasted image 20250912113623.png]]
-3. ![[Blank 5 Grids Collage.png]]
-4. ![[Pasted image 20250912114325.jpg]]
-5. ![[Pasted image 20250912114346.jpg]]
+1. ![Captura 1](Pasted%20image%2020250912113705.png)
+2. ![Captura 2](Pasted%20image%2020250912113623.png)
+3. ![Collage](Blank%205%20Grids%20Collage.png)
+4. ![Captura 3](Pasted%20image%2020250912114325.jpg)
+5. ![Captura 4](Pasted%20image%2020250912114346.jpg)
+
 ## Conclusión:
 
 Con esta actividad aprendimos a instalar y poner en funcionamiento una Raspberry Pi desde cero. Pudimos seguir los pasos básicos: preparar la tarjeta de memoria, configurar el usuario y la contraseña, y finalmente conectarnos desde otra computadora usando SSH.
