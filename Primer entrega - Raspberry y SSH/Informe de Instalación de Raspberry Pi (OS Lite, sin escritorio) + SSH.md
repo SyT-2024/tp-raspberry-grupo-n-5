@@ -1,4 +1,4 @@
-
+## Informe de Instalación de Raspberry Pi (OS Lite, sin escritorio) + SSH
 
 **Alumnos:** _Benavidez, Nuñez, Del Gesso, Pedone  y Alvarez_
 
