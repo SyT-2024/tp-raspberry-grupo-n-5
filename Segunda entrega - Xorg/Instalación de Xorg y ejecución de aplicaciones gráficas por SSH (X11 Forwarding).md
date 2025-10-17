@@ -1,3 +1,5 @@
+## Instalación de Xorg y ejecución de aplicaciones gráficas por SSH (X11 Forwarding)
+
 ## Índice
 
 1. Introducción
