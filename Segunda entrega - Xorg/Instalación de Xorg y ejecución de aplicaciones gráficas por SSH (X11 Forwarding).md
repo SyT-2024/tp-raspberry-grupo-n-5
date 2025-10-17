@@ -72,6 +72,9 @@ El **X11 Forwarding** es una extensión que permite enviar la interfaz gráfica 
 
 `sudo apt install xorg -y`
 
+<img width="1280" height="960" alt="image" src="https://github.com/user-attachments/assets/160e200a-1ab4-4f5a-8625-a4e08d0169d9" />
+
+
 ### 3. Habilitar el reenvío gráfico en SSH
 
 Editar el archivo de configuración del servidor SSH:
@@ -92,11 +95,17 @@ Desde el equipo cliente (Linux o WSL con X11 instalado):
 
 `ssh -X usuario@ip_raspberry`
 
+<img width="1280" height="960" alt="image" src="https://github.com/user-attachments/assets/9af549b7-fff7-459d-bf84-693739e587c6" />
+
+
 ### 5. Probar con una aplicación gráfica simple
 
 Ejemplo con `xclock` (reloj gráfico, puede instalarse si no está):
 
 `sudo apt install x11-apps -y xclock`
+
+<img width="1280" height="960" alt="image" src="https://github.com/user-attachments/assets/08a92faa-7f01-4c5e-9599-365c7559275f" />
+
 
 ---
 
@@ -123,6 +132,10 @@ Ejemplo con `xclock` (reloj gráfico, puede instalarse si no está):
 
 ## Conclusión
 
-En este informe se instaló y configuró el servidor gráfico **Xorg** en una Raspberry Pi. Se habilitó el reenvío gráfico mediante SSH para que aplicaciones gráficas se ejecuten en el cliente sin necesidad de instalar un entorno de escritorio completo en el servidor.
+La instalación y configuración del servidor gráfico Xorg en la Raspberry Pi permitió comprender de forma práctica el funcionamiento del sistema de ventanas X11 y su integración con el protocolo SSH mediante el reenvío gráfico (X11 Forwarding).
+Durante el proceso se comprobó que las aplicaciones gráficas ejecutadas desde la Raspberry mediante ssh -X se mostraban correctamente en el equipo cliente, utilizando los recursos gráficos de este último. Sin embargo, se observó que al ejecutarlas aparecía un gestor de ventanas en el entorno del cliente, a pesar de que la consigna especificaba que el servidor debía funcionar sin uno. Esto se debe a que el propio entorno gráfico del cliente es quien gestiona la visualización de las ventanas, incluso cuando el procesamiento principal ocurre en la Raspberry Pi.
 
-Esto permite trabajar con aplicaciones gráficas de manera remota, reduciendo el consumo de recursos de la Raspberry Pi y delegando el procesamiento gráfico al equipo cliente.
+A nivel técnico, se logró establecer una conexión remota segura y funcional, demostrando la capacidad de Xorg para separar el procesamiento y la representación gráfica. Esta arquitectura permite optimizar los recursos del servidor, reducir la carga sobre el hardware de la Raspberry y aprovechar la potencia gráfica del cliente.
+
+En conjunto, la práctica permitió consolidar conocimientos sobre la configuración de servicios en Linux, el manejo del protocolo SSH, y la estructura modular del sistema X11.
+El trabajo evidenció cómo Xorg actúa como una pieza clave dentro del modelo cliente-servidor para la ejecución de aplicaciones gráficas distribuidas, garantizando eficiencia y flexibilidad en entornos remotos.
