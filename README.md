@@ -16,7 +16,6 @@ Cada actividad está organizada en su propia carpeta e incluye un README con el 
 2. [Instalación de Xorg y ejecución de aplicaciones gráficas por SSH (X11 Forwarding)](https://github.com/SyT-2024/tp-raspberry-grupo-n-5/blob/main/Segunda%20entrega%20-%20Xorg/Instalaci%C3%B3n%20de%20Xorg%20y%20ejecuci%C3%B3n%20de%20aplicaciones%20gr%C3%A1ficas%20por%20SSH%20(X11%20Forwarding).md)
 3. [Configuración del Servicio DHCP](https://github.com/SyT-2024/tp-raspberry-grupo-n-5/blob/main/Tercer%20entrega%20-%20DHCP/Servicio%20DHCP.md)
 
-*(a medida que se agreguen más actividades, sumarlas aquí con sus respectivos enlaces)*
 
 ---
 
