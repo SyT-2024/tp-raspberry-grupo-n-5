@@ -1,19 +1,21 @@
 # SERVICIO DHCP – Raspberry Pi (LAN 192.168.5.0/24)
+
+
 ---
 
 ## Índice
 
 * [Introducción](#introducción)
 * [Objetivo](#objetivo)
-* [Concepto teórico: ¿Qué es DHCP y por qué lo usamos?](#concepto-teórico-qué-es-dhcp-y-por-qué-lo-usamos)
 * [Desarrollo](#desarrollo)
 
   * [Plan de direccionamiento](#plan-de-direccionamiento)
+  * [Concepto teórico: DHCP en nuestra LAN](#concepto-teórico-dhcp-en-nuestra-lan)
   * [Configurar IP por NMCLI (Grupo 5)](#configurar-ip-por-nmcli-grupo-5)
   * [Servidor DHCP — Opción A (ISC-DHCP-Server)](#servidor-dhcp--opción-a-isc-dhcp-server)
   * [Pruebas y verificación](#pruebas-y-verificación)
   * [Archivo Packet Tracer (.pkt) en el repo](#archivo-packet-tracer-pkt-en-el-repo)
-  * [Glosario de comandos utilizados (desglose)](#glosario-de-comandos-utilizados-desglose)
+  * [Glosario de comandos utilizados (desglose token-por-token)](#glosario-de-comandos-utilizados-desglose-token-por-token)
 * [Conclusión](#conclusión)
 * [Fuentes](#fuentes)
 
@@ -33,18 +35,6 @@ Diseñar, implementar y **documentar** una LAN por grupo donde la **Raspberry Pi
 * Asignar **IP dinámicas** (rango sugerido `192.168.5.100–200`, gateway `192.168.5.1`, máscara `/24`, DNS públicos).
 * Integrar **Raspberry + switch + notebooks** en una topología simple y funcional.
 * **Verificarse** con pruebas (ping, leases) y dejar evidencia en el repositorio.
-
----
-
-## Concepto teórico: ¿Qué es DHCP y por qué lo usamos?
-
-**DHCP (Dynamic Host Configuration Protocol)** es un protocolo que **asigna automáticamente** a cada dispositivo de la red su **configuración IP**: dirección IP, máscara, gateway y DNS.
-Sin DHCP, cada notebook tendría que configurarse **a mano**, lo que es **lento**, **propenso a errores** (IPs duplicadas, máscaras incorrectas) y **difícil de mantener**.
-Con DHCP:
-
-* Los equipos del grupo reciben **IP válidas** dentro del rango elegido (`192.168.5.100–200`).
-* Se garantiza un **único gateway** (`192.168.5.1`) y **DNS coherentes**.
-* La red es **más ordenada y escalable**: enchufar y usar (*plug and play*).
 
 ---
 
@@ -68,10 +58,21 @@ Con DHCP:
 
 ---
 
+### Concepto teórico: DHCP en nuestra LAN
+
+**DHCP (Dynamic Host Configuration Protocol)** es el protocolo que **asigna automáticamente** a cada dispositivo de la red su **configuración IP**: dirección IP, máscara, gateway y DNS.
+Sin DHCP, cada equipo requeriría configuración **manual**, lo que es **lento**, **propenso a errores** (IPs duplicadas, máscaras mal puestas) y **difícil de mantener**.
+En `192.168.5.0/24`, DHCP garantiza:
+
+* **IP válidas** y **únicas** dentro de `192.168.5.100–200`.
+* **Gateway único** `192.168.5.1` y **DNS coherentes**.
+* Una experiencia **plug-and-play**: conectar y trabajar.
+
+---
+
 ### Configurar IP por NMCLI (Grupo 5)
 
-> **Objetivo:** Dejar **eth0** de la Raspberry con IP estática, gateway y DNS, usando **NetworkManager** (`nmcli`).
-> Útil para administrar la interfaz sin tocar `dhcpcd.conf`.
+> Objetivo: Dejar **eth0** con IP estática, gateway y DNS usando **NetworkManager** (`nmcli`).
 
 ```bash
 sudo nmcli con add type ethernet ifname eth0 con-name lan-grupo5 ipv4.method manual ipv4.addresses 192.168.5.1/24
@@ -80,22 +81,9 @@ sudo nmcli con mod lan-grupo5 ipv4.dns "1.1.1.1 8.8.8.8"
 sudo nmcli con up lan-grupo5
 ```
 
-**¿Qué hace cada comando?**
-
-* `nmcli con add type ethernet ifname eth0 con-name lan-grupo5 ipv4.method manual ipv4.addresses 192.168.5.1/24`
-  Crea una **conexión** llamada `lan-grupo5` para la interfaz **eth0**, con método IPv4 **manual** (IP estática) y dirección `192.168.5.1/24`.
-* `nmcli con mod lan-grupo5 ipv4.gateway 192.168.5.1`
-  Define el **gateway** (puerta de enlace) de esa conexión (aquí la propia Pi).
-* `nmcli con mod lan-grupo5 ipv4.dns "1.1.1.1 8.8.8.8"`
-  Asigna los **DNS** Cloudflare y Google a la conexión.
-* `nmcli con up lan-grupo5`
-  **Levanta/activa** la conexión recién configurada.
-
-> **Nota:** Si gestionás **eth0** con `nmcli`, evitá que otros servicios reconfiguren la misma interfaz para no duplicar ajustes.
-
 ---
 
-### Servidor DHCP — Opción A (ISC-DHCP-Server)
+### Servidor DHCP — (ISC-DHCP-Server)
 
 **Instalar:**
 
@@ -168,52 +156,132 @@ ping -c 3 192.168.5.1
 
 ---
 
-### Archivo Packet Tracer (.pkt) en el repo
-
-El archivo de **Packet Tracer** ya está cargado en el repositorio y se llama **`Grupo5.pkt`**.
+### Archivo Packet Tracer (.pkt) en este archivo ''Tercer entrega - DHCP''
+El archivo de **Packet Tracer** ya está cargado en eéste archivo y se llama **`Grupo5.pkt`**.
 Sirve como evidencia del diseño y para observar el flujo **DORA** (Discover, Offer, Request, Ack) de forma controlada.
 
 ---
 
-## Glosario de comandos utilizados (desglose)
+## Glosario de comandos utilizados (desglose token-por-token)
 
-**Edición y archivos**
+### Gestión de paquetes (APT)
 
-* `nano RUTA/ARCHIVO`: abre el archivo en el editor de texto **nano**.
+**Comando:** `sudo apt update`
 
-  * Guardar: `Ctrl+O` → Enter. Salir: `Ctrl+X`.
+* `sudo`: ejecuta con privilegios de **superusuario** (root).
+* `apt`: gestor de **paquetes** de Debian/Ubuntu/Raspberry Pi OS.
+* `update`: **actualiza el índice** local de paquetes disponibles desde los repositorios.
 
-**Gestión de paquetes**
+**Comando:** `sudo apt install -y isc-dhcp-server`
 
-* `sudo apt update`: actualiza el índice de paquetes disponibles.
-* `sudo apt install -y PAQUETE`: instala el paquete indicado sin pedir confirmación interactiva.
+* `sudo`: privilegios de superusuario.
+* `apt`: gestor de paquetes.
+* `install`: **instala** paquetes.
+* `-y`: responde **“yes” automáticamente** a las confirmaciones.
+* `isc-dhcp-server`: nombre del **paquete** a instalar.
 
-**Servicios (systemd)**
+---
 
-* `sudo systemctl enable --now SERVICIO`: habilita el servicio al arranque y lo inicia ya.
-* `sudo systemctl status SERVICIO`: muestra el estado del servicio.
-* `sudo systemctl restart SERVICIO`: reinicia el servicio.
+### Edición de archivos
 
-**Logs**
+**Comando:** `sudo nano /etc/default/isc-dhcp-server`
 
-* `sudo journalctl -u SERVICIO -f`: muestra los logs **en vivo** de ese servicio.
+* `sudo`: privilegios de superusuario (archivo del sistema).
+* `nano`: editor de texto **en consola**.
+* `/etc/default/isc-dhcp-server`: **ruta** del archivo a editar (define interfaz del servicio).
 
-**Red**
+**Comando:** `sudo nano /etc/dhcp/dhcpd.conf`
 
-* `ip -4 a show dev eth0`: muestra las direcciones IPv4 asignadas a `eth0`.
-* `ping -c 3 IP`: envía 3 paquetes ICMP para probar conectividad.
+* `sudo`: privilegios de superusuario.
+* `nano`: editor de texto.
+* `/etc/dhcp/dhcpd.conf`: archivo principal de **configuración** del servidor ISC DHCP.
 
-**NetworkManager (nmcli)**
+---
 
-* `nmcli con add ...`: crea una **conexión** con parámetros (tipo, interfaz, método IPv4, IP/máscara).
-* `nmcli con mod ...`: **modifica** parámetros de la conexión (gateway, DNS, etc.).
-* `nmcli con up NOMBRE`: **activa** la conexión.
+### Servicios y logs (systemd / journal)
 
-**DHCP (ISC)**
+**Comando:** `sudo systemctl enable --now isc-dhcp-server`
 
-* Archivo `**/etc/default/isc-dhcp-server**`: define **en qué interfaz** escucha (p. ej., `eth0`).
-* Archivo `**/etc/dhcp/dhcpd.conf**`: define el **pool** (rango, gateway, máscara, broadcast, DNS).
-* `**/var/lib/dhcp/dhcpd.leases**`: lista de **concesiones** otorgadas (útil para verificar clientes).
+* `sudo`: privilegios de superusuario.
+* `systemctl`: herramienta para **administrar servicios** (systemd).
+* `enable`: **habilita** el servicio en el **inicio** del sistema.
+* `--now`: además de habilitar, **inicia inmediatamente**.
+* `isc-dhcp-server`: nombre del **servicio**.
+
+**Comando:** `sudo systemctl status isc-dhcp-server`
+
+* `sudo`: privilegios de superusuario (para ver detalles completos).
+* `systemctl`: administración de servicios.
+* `status`: muestra **estado**, **PID**, **logs recientes**, etc.
+* `isc-dhcp-server`: servicio a consultar.
+
+**Comando:** `sudo journalctl -u isc-dhcp-server -f`
+
+* `sudo`: privilegios de superusuario.
+* `journalctl`: visor de **logs** de systemd.
+* `-u isc-dhcp-server`: filtra logs por **unidad/servicio**.
+* `-f`: sigue los logs **en vivo** (“follow”).
+
+**Comando:** `sudo tail -n 50 /var/lib/dhcp/dhcpd.leases`
+
+* `sudo`: privilegios de superusuario (archivo de sistema).
+* `tail`: muestra el **final** de un archivo.
+* `-n 50`: últimas **50** líneas.
+* `/var/lib/dhcp/dhcpd.leases`: archivo de **concesiones** (leases) otorgadas.
+
+---
+
+### Red (iproute2, ping)
+
+**Comando:** `ip -4 a show dev eth0`
+
+* `ip`: herramienta de **iproute2** para red.
+* `-4`: limita salida a **IPv4**.
+* `a` (abreviatura de `addr`): muestra **direcciones**.
+* `show`: **muestra** información.
+* `dev`: especifica **dispositivo** de red.
+* `eth0`: interfaz **Ethernet** principal.
+
+**Comando:** `ping -c 3 192.168.5.1`
+
+* `ping`: prueba de **conectividad** ICMP.
+* `-c 3`: envía **3** paquetes y termina.
+* `192.168.5.1`: **destino** (nuestra Raspberry en LAN).
+
+---
+
+### NetworkManager (nmcli)
+
+**Comando (crear conexión):**
+`sudo nmcli con add type ethernet ifname eth0 con-name lan-grupo5 ipv4.method manual ipv4.addresses 192.168.5.1/24`
+
+* `sudo`: privilegios de superusuario.
+* `nmcli`: interfaz de **línea de comandos** de NetworkManager.
+* `con`: abreviatura de **connection**.
+* `add`: **crea** una conexión nueva.
+* `type ethernet`: tipo de conexión **Ethernet**.
+* `ifname eth0`: interfaz **física** donde aplica (eth0).
+* `con-name lan-grupo5`: **nombre** identificador de la conexión.
+* `ipv4.method manual`: método IPv4 **manual** (estático).
+* `ipv4.addresses 192.168.5.1/24`: dirección **IP/máscara** que asigna a eth0.
+
+**Comando (modificar gateway):**
+`sudo nmcli con mod lan-grupo5 ipv4.gateway 192.168.5.1`
+
+* `mod`: **modifica** una conexión existente.
+* `lan-grupo5`: nombre de la conexión a modificar.
+* `ipv4.gateway 192.168.5.1`: define **gateway** IPv4.
+
+**Comando (modificar DNS):**
+`sudo nmcli con mod lan-grupo5 ipv4.dns "1.1.1.1 8.8.8.8"`
+
+* `ipv4.dns`: lista de **servidores DNS** (separados por espacio).
+* `"1.1.1.1 8.8.8.8"`: **Cloudflare** y **Google**.
+
+**Comando (activar conexión):**
+`sudo nmcli con up lan-grupo5`
+
+* `up`: **levanta/activa** la conexión indicada.
 
 ---
 
@@ -232,4 +300,4 @@ En síntesis, superamos el obstáculo más difícil —la **convivencia con la i
 ## Fuentes
 
 * Debian – Servidor DHCP (ISC): [https://servidordebian.org/es/buster/intranet/dhcp/server](https://servidordebian.org/es/buster/intranet/dhcp/server)
-* Sobrebits – Configurar DHCP en Raspberry (como referencia general): [https://sobrebits.com/montar-un-servidor-casero-con-raspberry-pi-parte-3-configurar-servidor-dhcp/](https://sobrebits.com/montar-un-servidor-casero-con-raspberry-pi-parte-3-configurar-servidor-dhcp/)
+* Sobrebits – Configurar DHCP en Raspberry (referencia general): [https://sobrebits.com/montar-un-servidor-casero-con-raspberry-pi-parte-3-configurar-servidor-dhcp/](https://sobrebits.com/montar-un-servidor-casero-con-raspberry-pi-parte-3-configurar-servidor-dhcp/)
