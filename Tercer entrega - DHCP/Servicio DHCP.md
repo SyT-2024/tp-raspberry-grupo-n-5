@@ -1,6 +1,6 @@
 
 
-> [!Objetivo]
+[!IMPORTANT] Objetivo
 
 > **Objetivo del TP:** diseñar, implementar y **documentar** una LAN por grupo donde la **Raspberry Pi** actúe como **servidor DHCP** para `192.168.{{GRUPO}}.0/24`.  
 
