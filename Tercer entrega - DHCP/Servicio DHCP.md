@@ -80,6 +80,7 @@ sudo nmcli con mod lan-grupo5 ipv4.gateway 192.168.5.1
 sudo nmcli con mod lan-grupo5 ipv4.dns "1.1.1.1 8.8.8.8"
 sudo nmcli con up lan-grupo5
 ```
+![275554d9-4c01-4842-a94e-e36e981f1884](https://github.com/user-attachments/assets/d2103c02-e7f8-4be3-8726-921e445a41ec)
 
 ---
 
@@ -91,6 +92,7 @@ sudo nmcli con up lan-grupo5
 sudo apt update
 sudo apt install -y isc-dhcp-server
 ```
+![671e8002-df89-448e-a76e-55c9bddb7153](https://github.com/user-attachments/assets/179f910a-4462-460f-ad9f-dc8564ded880)
 
 **Seleccionar interfaz:**
 
@@ -121,6 +123,7 @@ subnet 192.168.5.0 netmask 255.255.255.0 {
   option domain-name-servers 1.1.1.1, 8.8.8.8;
 }
 ```
+![41c7f262-00b7-452c-8dd8-8598aa739958](https://github.com/user-attachments/assets/937fc19f-1212-45bc-bf82-ccea60a6e3a3)
 
 **Levantar y chequear:**
 
@@ -130,6 +133,7 @@ sudo systemctl status isc-dhcp-server
 sudo journalctl -u isc-dhcp-server -f
 sudo tail -n 50 /var/lib/dhcp/dhcpd.leases
 ```
+![3414cb03-6d91-4c1d-a3f0-426da8c9176b](https://github.com/user-attachments/assets/e42fc4a6-8af9-4c9a-bda5-8ef4e70fe3dd)
 
 ---
 
@@ -147,6 +151,7 @@ En cada notebook (conectada al switch y en DHCP):
   * IP en `192.168.5.100–200`
   * Gateway `192.168.5.1`
   * DNS `1.1.1.1 / 8.8.8.8`
+![5740c2e2-be9e-4854-bf1f-a8dddc53e5fb](https://github.com/user-attachments/assets/581321fd-52f9-4f9b-8b2f-69f1e981fdb8)
 
 * **Conectividad con la Raspberry:**
 
