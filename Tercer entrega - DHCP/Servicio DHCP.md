@@ -287,14 +287,11 @@ Sirve como evidencia del diseño y para observar el flujo **DORA** (Discover, Of
 
 ## Conclusión
 
-Este TP fue, hasta ahora, el desafío **más complejo** del módulo de redes. No sólo implicó configurar correctamente la Raspberry como **servidor DHCP** para `192.168.5.0/24`, sino también **entender la dinámica real** de una LAN con switch, aislar el dominio de broadcast y dejar evidencia clara en el repositorio. La combinación de diseño, implementación y verificación (DORA, leases, pruebas de ping y parámetros IP) nos obligó a trabajar con criterios de producción: pasos claros, un **único** DHCP activo y controles de estado/logs.
+Este TP fue, hasta ahora, el desafío más exigente del módulo de redes. No se trató solo de poner a punto la Raspberry como servidor DHCP para 192.168.5.0/24, sino de comprender cómo funciona de verdad una LAN con switch, separar el dominio de broadcast y dejar todo bien documentado en el repositorio. El proceso completo —diseño, implementación y verificación (DORA, leases, ping y parámetros IP)— nos llevó a trabajar con una lógica “de producción”: pasos claros, un único DHCP activo y control permanente de estados y registros.
 
-**Lo más difícil** fue lograr que **todo el entorno conviva sin conflictos**. Tuvimos errores durante el proceso; el más relevante fue un **conflicto con la red del colegio** (otro servidor DHCP en el mismo dominio de broadcast). **Gracias al profesor** pudimos diagnosticar y resolverlo: aislamos el switch del grupo, verificamos que sólo nuestra Raspberry ofreciera DHCP en `eth0` y confirmamos con logs y *leases* que los clientes recibían la configuración correcta.
+Lo que más nos costó fue lograr que todo conviva sin conflictos. Aparecieron errores y, en particular, un choque con la red del colegio (otro servidor DHCP en el mismo dominio de broadcast). Con la ayuda del profesor pudimos identificar el problema y resolverlo: aislamos el switch del grupo, confirmamos que solo nuestra Raspberry ofreciera DHCP por eth0 y validamos con los logs y los leases que los clientes recibían la configuración correcta.
 
-Como medida central, adoptamos un **checklist** permanente: IP estática de la Raspberry en `192.168.5.1/24` (configurada con **NMCLI**), **un único servidor DHCP**, rango `192.168.5.100–200`, gateway `192.168.5.1`, DNS coherentes y verificación en clientes con `ipconfig /renew` o `nmcli`. El archivo **`Grupo5.pkt`** en el repo complementa la documentación técnica y permite replicar la topología y el proceso DORA de forma controlada.
-
-En síntesis, superamos el obstáculo más difícil —la **convivencia con la infraestructura del colegio**— aprendiendo a **aislar, medir y verificar** con criterios técnicos. Hoy contamos con una **LAN estable**, con **asignación automática de IP** y documentación clara; y dejamos sentadas buenas prácticas (log de eventos, un solo DHCP por dominio, pruebas de conectividad y *leases*) que nos preparan para futuras extensiones del trabajo.
-
+Como aprendizaje clave, adoptamos un checklist fijo: IP estática de la Raspberry en 192.168.5.1/24 (configurada con NMCLI), un solo servidor DHCP, rango 192.168.5.100–200, gateway 192.168.5.1, DNS coherentes y verificación en clientes con ipconfig /renew o nmcli. El archivo Grupo5.pkt del repositorio acompaña la documentación y permite replicar la topología y el flujo DORA de manera controlada.
 ---
 
 ## Fuentes
