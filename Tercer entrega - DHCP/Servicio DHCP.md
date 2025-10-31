@@ -1,404 +1,235 @@
-
-
-> [!IMPORTANT] Objetivo
-
-> **Objetivo del TP:** diseñar, implementar y **documentar** una LAN por grupo donde la **Raspberry Pi** actúe como **servidor DHCP** para `192.168.{{GRUPO}}.0/24`.  
-
-> La solución debe:
-
-> - Asignar **IP dinámicas** (rango sugerido `192.168.{{GRUPO}}.100–200`, gateway `192.168.{{GRUPO}}.1`, máscara `/24`, DNS públicos).
-
-> - Integrar **Raspberry + switch + notebooks** en topología simple y funcional.
-
-> - **Documentarse** con un diagrama en **Packet Tracer** (DORA observable).
-
-> - **Verificarse** con pruebas (ping, leases).
-
-> - (Opcional) **NAT** si la Pi tiene upstream por `wlan0`.
-
-  
+# SERVICIO DHCP – Raspberry Pi (LAN 192.168.5.0/24)
+---
 
 ## Índice
 
-- [[#Introducción|Introducción]]
+* [Introducción](#introducción)
+* [Objetivo](#objetivo)
+* [Concepto teórico: ¿Qué es DHCP y por qué lo usamos?](#concepto-teórico-qué-es-dhcp-y-por-qué-lo-usamos)
+* [Desarrollo](#desarrollo)
 
-- [[#Desarrollo|Desarrollo]]
-
-  - [[#Plan-de-direccionamiento|Plan de direccionamiento]]
-
-  - [[#Configurar-IP-estática-en-la-Raspberry|Configurar IP estática en la Raspberry]]
-
-  - [[#Servidor-DHCP—opción-A-ISC-DHCP-Server|Servidor DHCP — opción A (ISC)]]
-
-  - [[#Servidor-DHCP—opción-B-dnsmasq|Servidor DHCP — opción B (dnsmasq)]]
-
-  - [[#Pruebas-y-verificación|Pruebas y verificación]]
-
-  - [[#Diagrama-en-Packet-Tracer|Diagrama en Packet Tracer]]
-
-  - [[#Extra-opcional-Salida-a-Internet-por-NAT|Extra (opcional): Salida a Internet por NAT]]
-
-  - [[#Solución-de-problemas|Solución de problemas]]
-
-- [[#Conclusión|Conclusión]]
-
-  
+  * [Plan de direccionamiento](#plan-de-direccionamiento)
+  * [Configurar IP por NMCLI (Grupo 5)](#configurar-ip-por-nmcli-grupo-5)
+  * [Servidor DHCP — Opción A (ISC-DHCP-Server)](#servidor-dhcp--opción-a-isc-dhcp-server)
+  * [Pruebas y verificación](#pruebas-y-verificación)
+  * [Archivo Packet Tracer (.pkt) en el repo](#archivo-packet-tracer-pkt-en-el-repo)
+  * [Glosario de comandos utilizados (desglose)](#glosario-de-comandos-utilizados-desglose)
+* [Conclusión](#conclusión)
+* [Fuentes](#fuentes)
 
 ---
+
 ## Introducción
 
-La **Raspberry Pi** funcionará como **servidor DHCP** de la LAN del grupo (`192.168.{{GRUPO}}.0/24`). La Raspberry (por **eth0**) y las notebooks se conectan al **switch** del grupo. La entrega incluye un **diagrama en Packet Tracer** que refleje el diseño implementado.
+La **Raspberry Pi** funcionará como **servidor DHCP** de la LAN del grupo `192.168.5.0/24`.
+La Raspberry (por **eth0**) y las notebooks se conectan al **switch** del grupo. La entrega incluye la documentación de implementación y verificación del servicio.
 
 ---
+
+## Objetivo
+
+Diseñar, implementar y **documentar** una LAN por grupo donde la **Raspberry Pi** actúe como **servidor DHCP** para `192.168.5.0/24`. La solución debe:
+
+* Asignar **IP dinámicas** (rango sugerido `192.168.5.100–200`, gateway `192.168.5.1`, máscara `/24`, DNS públicos).
+* Integrar **Raspberry + switch + notebooks** en una topología simple y funcional.
+* **Verificarse** con pruebas (ping, leases) y dejar evidencia en el repositorio.
+
+---
+
+## Concepto teórico: ¿Qué es DHCP y por qué lo usamos?
+
+**DHCP (Dynamic Host Configuration Protocol)** es un protocolo que **asigna automáticamente** a cada dispositivo de la red su **configuración IP**: dirección IP, máscara, gateway y DNS.
+Sin DHCP, cada notebook tendría que configurarse **a mano**, lo que es **lento**, **propenso a errores** (IPs duplicadas, máscaras incorrectas) y **difícil de mantener**.
+Con DHCP:
+
+* Los equipos del grupo reciben **IP válidas** dentro del rango elegido (`192.168.5.100–200`).
+* Se garantiza un **único gateway** (`192.168.5.1`) y **DNS coherentes**.
+* La red es **más ordenada y escalable**: enchufar y usar (*plug and play*).
+
+---
+
 ## Desarrollo
 
 ### Plan de direccionamiento
 
-- **Red LAN:** `192.168.{{GRUPO}}.0/24`  
+| Componente            | Valor                           |
+| --------------------- | ------------------------------- |
+| Red LAN               | `192.168.5.0/24`                |
+| Raspberry (eth0)      | `192.168.5.1`                   |
+| Rango DHCP (clientes) | `192.168.5.100 – 192.168.5.200` |
+| Máscara               | `255.255.255.0`                 |
+| Broadcast             | `192.168.5.255`                 |
+| DNS sugeridos         | `1.1.1.1`, `8.8.8.8`            |
 
-- **Raspberry (eth0):** `192.168.{{GRUPO}}.1`  
+**Conexiones físicas**
 
-- **Rango DHCP (clientes):** `192.168.{{GRUPO}}.100–192.168.{{GRUPO}}.200`  
-
-- **Máscara:** `255.255.255.0`  
-
-- **Broadcast:** `192.168.{{GRUPO}}.255`  
-
-- **DNS sugeridos:** `1.1.1.1`, `8.8.8.8`
-
-  
-
-> [!tip] Conexiones físicas
-
-> - Raspberry (eth0) ↔ **Switch** del grupo  
-
-> - Notebooks ↔ **Switch** (modo *Obtener IP automáticamente*)
+* Raspberry (eth0) ↔ **Switch** del grupo
+* Notebooks ↔ **Switch** (en *Obtener IP automáticamente*)
 
 ---
-### Configurar IP estática en la Raspberry
 
-> [!note] Raspberry Pi OS / Debian con **dhcpcd**
+### Configurar IP por NMCLI (Grupo 5)
 
-Editar `dhcpcd`:
-
-```bash
-
-sudo nano /etc/dhcpcd.conf
-
-```
-
-Agregar al final:
-
-```ini
-
-interface eth0
-
-static ip_address=192.168.{{GRUPO}}.1/24
-
-static domain_name_servers=1.1.1.1 8.8.8.8
-
-```
-
-Aplicar y verificar:
+> **Objetivo:** Dejar **eth0** de la Raspberry con IP estática, gateway y DNS, usando **NetworkManager** (`nmcli`).
+> Útil para administrar la interfaz sin tocar `dhcpcd.conf`.
 
 ```bash
-
-sudo systemctl restart dhcpcd
-
-ip -4 a show dev eth0
-
+sudo nmcli con add type ethernet ifname eth0 con-name lan-grupo5 ipv4.method manual ipv4.addresses 192.168.5.1/24
+sudo nmcli con mod lan-grupo5 ipv4.gateway 192.168.5.1
+sudo nmcli con mod lan-grupo5 ipv4.dns "1.1.1.1 8.8.8.8"
+sudo nmcli con up lan-grupo5
 ```
+
+**¿Qué hace cada comando?**
+
+* `nmcli con add type ethernet ifname eth0 con-name lan-grupo5 ipv4.method manual ipv4.addresses 192.168.5.1/24`
+  Crea una **conexión** llamada `lan-grupo5` para la interfaz **eth0**, con método IPv4 **manual** (IP estática) y dirección `192.168.5.1/24`.
+* `nmcli con mod lan-grupo5 ipv4.gateway 192.168.5.1`
+  Define el **gateway** (puerta de enlace) de esa conexión (aquí la propia Pi).
+* `nmcli con mod lan-grupo5 ipv4.dns "1.1.1.1 8.8.8.8"`
+  Asigna los **DNS** Cloudflare y Google a la conexión.
+* `nmcli con up lan-grupo5`
+  **Levanta/activa** la conexión recién configurada.
+
+> **Nota:** Si gestionás **eth0** con `nmcli`, evitá que otros servicios reconfiguren la misma interfaz para no duplicar ajustes.
 
 ---
-### Servidor DHCP—opción A (ISC-DHCP-Server)
 
-Instalar:
+### Servidor DHCP — Opción A (ISC-DHCP-Server)
+
+**Instalar:**
 
 ```bash
-
 sudo apt update
-
 sudo apt install -y isc-dhcp-server
-
 ```
 
-Fijar interfaz:
+**Seleccionar interfaz:**
 
 ```bash
-
 sudo nano /etc/default/isc-dhcp-server
-
 ```
 
 ```bash
-
 INTERFACESv4="eth0"
-
 ```
 
-Configurar pool:
+**Configurar pool:**
 
 ```bash
-
 sudo nano /etc/dhcp/dhcpd.conf
-
 ```
 
 ```conf
-
 default-lease-time 600;
-
 max-lease-time 7200;
-
 authoritative;
 
-  
-
-subnet 192.168.{{GRUPO}}.0 netmask 255.255.255.0 {
-
-  range 192.168.{{GRUPO}}.100 192.168.{{GRUPO}}.200;
-
-  option routers 192.168.{{GRUPO}}.1;
-
-  option subnet-mask 255.255.255.0;
-
-  option broadcast-address 192.168.{{GRUPO}}.255;
-
-  option domain-name-servers 1.1.1.1, 8.8.8.8;
-
+subnet 192.168.5.0 netmask 255.255.255.0 {
+  range 192.168.5.100 192.168.5.200;
+  option routers 192.168.5.1;
+  option subnet-mask 255.255.255.0;
+  option broadcast-address 192.168.5.255;
+  option domain-name-servers 1.1.1.1, 8.8.8.8;
 }
-
 ```
 
-Levantar y chequear:
+**Levantar y chequear:**
 
 ```bash
-
 sudo systemctl enable --now isc-dhcp-server
-
 sudo systemctl status isc-dhcp-server
-
 sudo journalctl -u isc-dhcp-server -f
-
 sudo tail -n 50 /var/lib/dhcp/dhcpd.leases
-
 ```
 
 ---
-### Servidor DHCP—opción B (dnsmasq)
 
-> [!warning] No usar junto con ISC al mismo tiempo.
-
-Instalar:
-
-```bash
-
-sudo apt update
-
-sudo apt install -y dnsmasq
-
-```
-
-Crear config:
-
-```bash
-
-sudo nano /etc/dnsmasq.d/lan.conf
-
-```
-
-```conf
-
-interface=eth0
-
-bind-interfaces
-
-dhcp-range=192.168.{{GRUPO}}.100,192.168.{{GRUPO}}.200,255.255.255.0,12h
-
-dhcp-option=3,192.168.{{GRUPO}}.1
-
-dhcp-option=6,1.1.1.1,8.8.8.8
-
-```
-
-Habilitar y chequear:
-
-```bash
-
-sudo systemctl enable --now dnsmasq
-
-sudo systemctl status dnsmasq
-
-sudo tail -n 50 /var/lib/misc/dnsmasq.leases
-
-```
-
----
 ### Pruebas y verificación
 
-- **Renovar IP en cliente**  
+En cada notebook (conectada al switch y en DHCP):
 
-  - Windows: `ipconfig /release` → `ipconfig /renew`  
+* **Renovar IP en cliente**
 
-  - Linux/macOS: desactivar/activar NIC o `nmcli dev reapply <nic>`
+  * Windows: `ipconfig /release` → `ipconfig /renew`
+  * Linux/macOS: desactivar/activar NIC o `nmcli dev reapply <nic>`
 
-- **Comprobar**: IP `192.168.{{GRUPO}}.100–200`, GW `192.168.{{GRUPO}}.1`, DNS `1.1.1.1/8.8.8.8`
+* **Comprobar parámetros recibidos:**
 
-- **Ping a la Raspberry**:
+  * IP en `192.168.5.100–200`
+  * Gateway `192.168.5.1`
+  * DNS `1.1.1.1 / 8.8.8.8`
+
+* **Conectividad con la Raspberry:**
 
 ```bash
-
-ping -c 3 192.168.{{GRUPO}}.1
-
+ping -c 3 192.168.5.1
 ```
 
 ---
-### Diagrama en Packet Tracer
 
-**Debe incluir:**
+### Archivo Packet Tracer (.pkt) en el repo
 
- - 1 **Switch** (ej. 2960)
-
- - 1 **Server** (simula la Raspberry) con IP `192.168.{{GRUPO}}.1`
-
- - 2–4 **PCs** en **DHCP**
-
- - Cables **straight-through** al switch
-
-**Sugerencia de config del Server (Packet Tracer):**
-
-  - **Config → FastEthernet**: IP `192.168.{{GRUPO}}.1`, máscara `255.255.255.0`
-
-  - **Services → DHCP**:
-
-  - Network: `192.168.{{GRUPO}}.0`
-
-  - Mask: `255.255.255.0`
-
-  - Default Gateway: `192.168.{{GRUPO}}.1`
-
-  - DNS: `1.1.1.1`
-
-  - Start IP / Max Users: rango equivalente `100–200`
-
-  
-**Guardar**: `DHCP_Grupo{{GRUPO}}_ApellidoNombre.pkt`  
-
-**Simulation Mode**: observar **DORA** (Discover, Offer, Request, ACK).
+El archivo de **Packet Tracer** ya está cargado en el repositorio y se llama **`Grupo5.pkt`**.
+Sirve como evidencia del diseño y para observar el flujo **DORA** (Discover, Offer, Request, Ack) de forma controlada.
 
 ---
 
-### Extra (opcional): Salida a Internet por NAT
+## Glosario de comandos utilizados (desglose)
 
-Si `wlan0` tiene Internet y querés que **eth0** tenga salida:
+**Edición y archivos**
 
-**IP forward**:
+* `nano RUTA/ARCHIVO`: abre el archivo en el editor de texto **nano**.
 
-```bash
+  * Guardar: `Ctrl+O` → Enter. Salir: `Ctrl+X`.
 
-echo 'net.ipv4.ip_forward=1' | sudo tee /etc/sysctl.d/99-ipforward.conf
+**Gestión de paquetes**
 
-sudo sysctl -p /etc/sysctl.d/99-ipforward.conf
+* `sudo apt update`: actualiza el índice de paquetes disponibles.
+* `sudo apt install -y PAQUETE`: instala el paquete indicado sin pedir confirmación interactiva.
 
-```
+**Servicios (systemd)**
 
-**NAT con nftables**:
+* `sudo systemctl enable --now SERVICIO`: habilita el servicio al arranque y lo inicia ya.
+* `sudo systemctl status SERVICIO`: muestra el estado del servicio.
+* `sudo systemctl restart SERVICIO`: reinicia el servicio.
 
-```bash
+**Logs**
 
-sudo apt install -y nftables
+* `sudo journalctl -u SERVICIO -f`: muestra los logs **en vivo** de ese servicio.
 
-sudo nft add table ip nat
+**Red**
 
-sudo nft 'add chain ip nat postrouting { type nat hook postrouting priority 100 ; }'
+* `ip -4 a show dev eth0`: muestra las direcciones IPv4 asignadas a `eth0`.
+* `ping -c 3 IP`: envía 3 paquetes ICMP para probar conectividad.
 
-sudo nft add rule ip nat postrouting oif "wlan0" masquerade
+**NetworkManager (nmcli)**
 
-sudo systemctl enable --now nftables
+* `nmcli con add ...`: crea una **conexión** con parámetros (tipo, interfaz, método IPv4, IP/máscara).
+* `nmcli con mod ...`: **modifica** parámetros de la conexión (gateway, DNS, etc.).
+* `nmcli con up NOMBRE`: **activa** la conexión.
 
-sudo nft list ruleset | sed -n '1,120p'
+**DHCP (ISC)**
 
-```
-
----
-### Solución de problemas
-
-> [!bug] Checklist rápido
-
-> - ¿Hay **otro** DHCP en el mismo dominio de broadcast? (Aislá el switch del grupo).
-
-> - ¿La Raspberry **eth0** tiene `192.168.{{GRUPO}}.1/24`?
-
-> - ¿El servicio corre en **eth0** y no en `wlan0`?
-
-**Logs útiles**:
-
-```bash
-
-# ISC
-
-sudo journalctl -u isc-dhcp-server -f
-
-sudo tail -n +1 /var/lib/dhcp/dhcpd.leases
-
-  
-
-# dnsmasq
-
-sudo journalctl -u dnsmasq -f
-
-sudo cat /var/lib/misc/dnsmasq.leases
-
-```
-
-**Reservas por MAC (opcional)**  
-
-ISC:
-
-```conf
-
-host notebook_juan {
-
-  hardware ethernet AA:BB:CC:DD:EE:FF;
-
-  fixed-address 192.168.{{GRUPO}}.50;
-
-}
-
-```
-
-dnsmasq:
-
-```conf
-
-dhcp-host=AA:BB:CC:DD:EE:FF,192.168.{{GRUPO}}.50,12h
-
-```
-
-**Fuentes**  
-
-- Debian – Servidor DHCP (ISC): https://servidordebian.org/es/buster/intranet/dhcp/server  
-
-- Raspberry + dnsmasq: https://sobrebits.com/montar-un-servidor-casero-con-raspberry-pi-parte-3-configurar-servidor-dhcp/
+* Archivo `**/etc/default/isc-dhcp-server**`: define **en qué interfaz** escucha (p. ej., `eth0`).
+* Archivo `**/etc/dhcp/dhcpd.conf**`: define el **pool** (rango, gateway, máscara, broadcast, DNS).
+* `**/var/lib/dhcp/dhcpd.leases**`: lista de **concesiones** otorgadas (útil para verificar clientes).
 
 ---
+
 ## Conclusión
 
+Este TP fue, hasta ahora, el desafío **más complejo** del módulo de redes. No sólo implicó configurar correctamente la Raspberry como **servidor DHCP** para `192.168.5.0/24`, sino también **entender la dinámica real** de una LAN con switch, aislar el dominio de broadcast y dejar evidencia clara en el repositorio. La combinación de diseño, implementación y verificación (DORA, leases, pruebas de ping y parámetros IP) nos obligó a trabajar con criterios de producción: pasos claros, un **único** DHCP activo y controles de estado/logs.
 
-> Este TP fue, hasta ahora, el desafío **más complejo** del módulo de redes. No sólo implicó configurar correctamente la Raspberry como **servidor DHCP** para el segmento `192.168.{{GRUPO}}.0/24`, sino también **entender la dinámica real** de una LAN con switch, aislar el dominio de broadcast y documentarlo en Packet Tracer. La combinación de diseño, implementación y verificación (DORA, leases, pruebas de ping y parámetros IP) nos obligó a trabajar con criterios de producción: pasos claros, un único DHCP activo y controles de estado/logs.
+**Lo más difícil** fue lograr que **todo el entorno conviva sin conflictos**. Tuvimos errores durante el proceso; el más relevante fue un **conflicto con la red del colegio** (otro servidor DHCP en el mismo dominio de broadcast). **Gracias al profesor** pudimos diagnosticar y resolverlo: aislamos el switch del grupo, verificamos que sólo nuestra Raspberry ofreciera DHCP en `eth0` y confirmamos con logs y *leases* que los clientes recibían la configuración correcta.
 
-**Lo más difícil** fue lograr que **todo el entorno conviva sin conflictos**. Tuvimos **muchos errores** en el camino; el más relevante fue un **conflicto con la red del colegio** (otro servidor DHCP presente en el mismo dominio de broadcast, interferencias con el router/AP institucional y rutas por defecto no deseadas). Ese choque generó síntomas confusos: clientes que obtenían IP fuera del rango, gateways incorrectos y pérdidas intermitentes de conectividad. **Gracias a la intervención del profesor**, pudimos diagnosticar y resolver el problema: aislamos físicamente el switch del grupo, verificamos que sólo nuestra Raspberry ofreciera DHCP en `eth0`, y confirmamos con los logs (_journalctl_ y archivos de _leases_) que los clientes recibían la configuración correcta.
+Como medida central, adoptamos un **checklist** permanente: IP estática de la Raspberry en `192.168.5.1/24` (configurada con **NMCLI**), **un único servidor DHCP**, rango `192.168.5.100–200`, gateway `192.168.5.1`, DNS coherentes y verificación en clientes con `ipconfig /renew` o `nmcli`. El archivo **`Grupo5.pkt`** en el repo complementa la documentación técnica y permite replicar la topología y el proceso DORA de forma controlada.
 
-Como medida central, adoptamos un **checklist** permanente: confirmar IP estática de la Raspberry en `192.168.{{GRUPO}}.1/24`, mantener **un único servidor DHCP** activo, usar el rango `192.168.{{GRUPO}}.100–200`, gateway `192.168.{{GRUPO}}.1`, DNS coherentes y verificar en clientes con `ipconfig /renew` o `nmcli`. Además, el diagrama en **Packet Tracer** se volvió clave para **comunicar y validar** la arquitectura y para observar DORA de forma controlada.
+En síntesis, superamos el obstáculo más difícil —la **convivencia con la infraestructura del colegio**— aprendiendo a **aislar, medir y verificar** con criterios técnicos. Hoy contamos con una **LAN estable**, con **asignación automática de IP** y documentación clara; y dejamos sentadas buenas prácticas (log de eventos, un solo DHCP por dominio, pruebas de conectividad y *leases*) que nos preparan para futuras extensiones del trabajo.
 
-En síntesis, superamos el obstáculo más difícil la **convivencia con la infraestructura del colegio** aprendiendo a **aislar, medir y verificar** con criterios técnicos. Hoy contamos con una **LAN estable**, con **asignación automática de IP** y documentación clara; y dejamos sentadas buenas prácticas (log de eventos, un solo DHCP por dominio, pruebas de conectividad y _leases_) que nos preparan para futuras extensiones, como **reservas por MAC** o **NAT** hacia Internet cuando sea necesario.
+---
 
->[!Resultados logrados]
+## Fuentes
 
-- **Disponibilidad**: notebooks obtienen IP dentro del rango `192.168.{{GRUPO}}.100–200`.  
-
--  **Aislamiento por grupo**: cada mesa gestiona su propio segmento sin conflictos de DHCP.  
-
--  **Mantenibilidad**: configuraciones simples, versionables y fáciles de restaurar.  
-
--  **Escalabilidad**: sumar PCs al switch no requiere cambios en los clientes.
+* Debian – Servidor DHCP (ISC): [https://servidordebian.org/es/buster/intranet/dhcp/server](https://servidordebian.org/es/buster/intranet/dhcp/server)
+* Sobrebits – Configurar DHCP en Raspberry (como referencia general): [https://sobrebits.com/montar-un-servidor-casero-con-raspberry-pi-parte-3-configurar-servidor-dhcp/](https://sobrebits.com/montar-un-servidor-casero-con-raspberry-pi-parte-3-configurar-servidor-dhcp/)
