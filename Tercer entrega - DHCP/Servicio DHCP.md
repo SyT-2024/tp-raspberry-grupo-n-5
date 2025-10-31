@@ -297,6 +297,7 @@ Este TP fue, hasta ahora, el desafío más exigente del módulo de redes. No se 
 Lo que más nos costó fue lograr que todo conviva sin conflictos. Aparecieron errores y, en particular, un choque con la red del colegio (otro servidor DHCP en el mismo dominio de broadcast). Con la ayuda del profesor pudimos identificar el problema y resolverlo: aislamos el switch del grupo, confirmamos que solo nuestra Raspberry ofreciera DHCP por eth0 y validamos con los logs y los leases que los clientes recibían la configuración correcta.
 
 Como aprendizaje clave, adoptamos un checklist fijo: IP estática de la Raspberry en 192.168.5.1/24 (configurada con NMCLI), un solo servidor DHCP, rango 192.168.5.100–200, gateway 192.168.5.1, DNS coherentes y verificación en clientes con ipconfig /renew o nmcli. El archivo Grupo5.pkt del repositorio acompaña la documentación y permite replicar la topología y el flujo DORA de manera controlada.
+
 ---
 
 ## Fuentes
