@@ -23,8 +23,13 @@
 
 ## Introducción
 
-La **Raspberry Pi** funcionará como **servidor DHCP** de la LAN del grupo `192.168.5.0/24`.
-La Raspberry (por **eth0**) y las notebooks se conectan al **switch** del grupo. La entrega incluye la documentación de implementación y verificación del servicio.
+### **Introducción**
+
+En esta etapa del proyecto, la **Raspberry Pi** fue configurada desde cero para funcionar como **servidor dentro de una red local**.  
+Primero se realizó la **instalación del sistema operativo Raspberry Pi OS Lite**, sin entorno gráfico, aprendiendo sobre sus características y funcionamiento básico. Luego, se **habilitó el servicio SSH** para permitir conexiones remotas seguras desde otros equipos, y se **instaló el servidor gráfico Xorg**, necesario para ejecutar aplicaciones gráficas en la Raspberry y visualizarlas en el cliente mediante reenvío X (sin que el servidor procese el video).  
+
+En esta tercera instancia, la Raspberry Pi se configuró como **servidor DHCP** de la red del grupo `192.168.5.0/24`, conectando la interfaz **eth0** al **switch** y gestionando dinámicamente la asignación de direcciones IP a los clientes.  
+La entrega incluye la **documentación completa de la instalación, configuración y verificación de los servicios** implementados hasta el momento.
 
 ---
 
