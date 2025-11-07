@@ -72,18 +72,6 @@ sudo apt update && sudo apt -y upgrade
 * `apt update` refresca los índices de paquetes.
 * `apt upgrade` aplica actualizaciones disponibles; `-y` confirma automáticamente.
 
-**Crear usuario dedicado (recomendado):**
-
-```bash
-sudo adduser --disabled-password --gecos "" ftpuser
-sudo passwd ftpuser
-```
-
-**Explicación:**
-
-* `adduser` crea un usuario del sistema; aquí **sin contraseña inicial** (se asigna luego) y sin datos interactivos (`--gecos ""`).
-* `passwd ftpuser` define la contraseña que se usará para autenticarse por FTP.
-
 ### 4.2. Instalación de vsftpd
 
 **Comandos:**
@@ -107,9 +95,10 @@ sudo systemctl status vsftpd --no-pager
 **Comandos:**
 
 ```bash
-sudo mkdir -p /srv/ftp/ftpuser
-sudo chown -R ftpuser:ftpuser /srv/ftp/ftpuser
-sudo chmod -R 755 /srv/ftp
+sudo mkdir -p /home/grupo5/ftp
+sudo chown root:root /home/grupo5
+sudo chmod 755 /home/grupo5
+sudo chown -R grupo5:grupo5 /home/grupo5
 ```
 
 **Explicación:**
@@ -139,13 +128,6 @@ write_enable=YES
 
 * **local_enable=YES**: permite usuarios del sistema.
 * **write_enable=YES**: habilita subir/borrar/renombrar.
-
-
-**Autorizar usuarios:**
-
-```bash
-echo "ftpuser" | sudo tee -a /etc/vsftpd.user_list
-```
 
 **Reiniciar servicio:**
 
@@ -182,18 +164,6 @@ ftp 192.168.5.1
 # Pass: (la definida)
 ```
 ![5bb0d367-bb7f-41ed-88f9-89bd567ee3ef](https://github.com/user-attachments/assets/f8f78cf8-8b62-483e-a3bf-a5142f0b90f6)
-
-**Transferencia:**
-
-* En el cliente FTP: `put archivo.txt` para subir; `get archivo.txt` para descargar.
-
-**Prueba con FileZilla (FTP simple o FTPS):**
-
-* **Host**: `192.168.5.1`, **Puerto**: `21`.
-* **Protocolo**: FTP; **Cifrado**: *Usar solo FTP simple (inseguro)* o **Requerir FTP explícito sobre TLS** (si se configuró FTPS).
-* **Modo de acceso**: Normal; **Usuario**: `ftpuser`; **Contraseña**: (…)
-* Conectar, crear carpeta de prueba y transferir un archivo.
-
 ---
 
 ## 5. Conclusión
