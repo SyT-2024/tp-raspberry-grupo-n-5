@@ -48,16 +48,7 @@ Sobre esa base, en este informe se documenta la instalación y configuración de
 
 **vsftpd** (Very Secure FTP Daemon) es un servidor FTP conocido por su **seguridad, rendimiento y simplicidad**. Soporta usuarios locales del sistema, modo chroot (encerrar a cada usuario en su directorio), **modo pasivo**, **listas de control de acceso** y **TLS** para FTPS. Es la opción estándar en Debian/Raspberry Pi OS.
 
-### 3.3. Modos de transferencia (activo/pasivo)
-
-* **Activo**: el cliente abre conexión al puerto 21 del servidor y **el servidor** inicia la conexión de datos hacia un puerto aleatorio del **cliente**. Puede fallar si el cliente está detrás de un firewall.
-* **Pasivo**: el cliente abre la conexión de control (21) y **también** abre la conexión de datos hacia un **rango de puertos** que el servidor publica. Es el modo recomendado en entornos con firewall/NAT y el más usado por clientes GUI.
-
-### 3.4. FTPS (FTP sobre TLS)
-
-**FTPS** agrega **cifrado TLS** al FTP. En modalidad **Explícita**, la sesión empieza en 21 y se negocia TLS. Aporta **confidencialidad e integridad** a credenciales y datos. En entornos educativos, un **certificado autofirmado** es suficiente para practicar, aunque los clientes mostrarán una advertencia la primera vez.
-
-### 3.5. Clientes FTP: FileZilla y WinSCP
+### 3.3. Clientes FTP: FileZilla y WinSCP
 
 * **FileZilla** (multiplataforma): interfaz gráfica para conectarse a servidores FTP/FTPS, arrastrar y soltar archivos, y gestionar sitios guardados.
 * **WinSCP** (Windows): similar a FileZilla; además soporta SFTP/FTP/FTPS. Útil en laboratorios donde se trabaja con Windows.
