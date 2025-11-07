@@ -156,13 +156,6 @@ ping 192.168.5.1
 
 * Si responde, hay conectividad de red.
 
-**Prueba rápida por consola (opcional):**
-
-```bash
-ftp 192.168.5.1
-# Usuario: ftpuser
-# Pass: (la definida)
-```
 ![5bb0d367-bb7f-41ed-88f9-89bd567ee3ef](https://github.com/user-attachments/assets/f8f78cf8-8b62-483e-a3bf-a5142f0b90f6)
 ---
 
