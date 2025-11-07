@@ -7,20 +7,17 @@
 1. Introducción
 2. Objetivo del informe
 3. Desarrollo teórico
-   3.1. ¿Qué es FTP?
-   3.2. Servidor vsftpd
-   3.3. Modos de transferencia (activo/pasivo)
-   3.4. FTPS (FTP sobre TLS)
-   3.5. Clientes FTP: FileZilla y WinSCP
 4. Desarrollo práctico (paso a paso)
    4.1. Preparación del sistema
+   
    4.2. Instalación de vsftpd
+   
    4.3. Estructura de directorios y permisos
+   
    4.4. Configuración básica y segura de vsftpd
-   4.5. Habilitar modo pasivo
-   4.6. (Opcional) Habilitar FTPS con certificado autofirmado
-   4.7. Pruebas de conectividad y transferencia
-   4.8. Verificación de logs
+   
+   4.5. Pruebas de conectividad y transferencia
+   
 5. Conclusión
 
 ---
@@ -36,10 +33,7 @@ Sobre esa base, en este informe se documenta la instalación y configuración de
 ## 2. Objetivo del informe
 
 * **Instalar** el servidor **vsftpd** en la Raspberry Pi.
-* **Configurar** FTP en modo seguro para la **LAN del grupo** (192.168.5.0/24), con usuarios locales y “jaula” (chroot) por usuario.
-* **Habilitar** el modo **pasivo** para compatibilidad con clientes detrás de NAT/firewall.
 * **Probar** el acceso y transferencias utilizando **FileZilla** y **WinSCP**.
-* (Opcional) **Implementar FTPS** (FTP explícito sobre TLS) con certificado autofirmado.
 * **Registrar** los pasos, comandos y resultados, con explicaciones claras para su defensa oral.
 
 ---
@@ -140,39 +134,21 @@ sudo chmod -R 755 /srv/ftp
 ```bash
 sudo nano /etc/vsftpd.conf
 ```
+![09e0acdc-175f-4743-94ce-15c251150479](https://github.com/user-attachments/assets/9ef779fd-73f9-4a82-931e-9a9713e2f453)
 
 **Parámetros clave (añadir/ajustar):**
 
 ```conf
-anonymous_enable=NO
 local_enable=YES
 write_enable=YES
-local_umask=022
-xferlog_enable=YES
-xferlog_std_format=YES
 
-chroot_local_user=YES
-allow_writeable_chroot=YES
-
-user_sub_token=$USER
-local_root=/srv/ftp/$USER
-
-userlist_enable=YES
-userlist_file=/etc/vsftpd.user_list
-userlist_deny=NO
 ```
 
 **Explicación:**
 
-* **anonymous_enable=NO**: desactiva acceso anónimo.
 * **local_enable=YES**: permite usuarios del sistema.
 * **write_enable=YES**: habilita subir/borrar/renombrar.
-* **local_umask=022**: permisos por defecto 755 para directorios/archivos nuevos.
-* **xferlog_***: activa logs de transferencia.
-* **chroot_local_user=YES**: encierra a cada usuario en su "home FTP".
-* **allow_writeable_chroot=YES**: permite chroot con directorio escribible.
-* **local_root** y **user_sub_token**: raíz FTP por usuario en `/srv/ftp/<usuario>`.
-* **userlist_enable / userlist_deny=NO**: sólo usuarios listados podrán entrar.
+
 
 **Autorizar usuarios:**
 
@@ -186,62 +162,8 @@ echo "ftpuser" | sudo tee -a /etc/vsftpd.user_list
 sudo systemctl restart vsftpd
 ```
 
-### 4.5. Habilitar modo pasivo
 
-**Añadir a `/etc/vsftpd.conf`:**
-
-```conf
-pasv_enable=YES
-pasv_min_port=30000
-pasv_max_port=30100
-```
-
-**Explicación:**
-
-* Define un **rango acotado** de puertos de datos para el modo pasivo (útil para abrir en firewall si hace falta). En la LAN del laboratorio, suele funcionar sin cambios adicionales.
-
-**Reiniciar:**
-
-```bash
-sudo systemctl restart vsftpd
-```
-
-### 4.6. (Opcional) Habilitar FTPS con certificado autofirmado
-
-**Generar certificado:**
-
-```bash
-sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
- -keyout /etc/ssl/private/vsftpd.pem \
- -out /etc/ssl/certs/vsftpd.pem
-sudo chmod 600 /etc/ssl/private/vsftpd.pem
-```
-
-**Configurar TLS en `/etc/vsftpd.conf`:**
-
-```conf
-ssl_enable=YES
-allow_anon_ssl=NO
-force_local_data_ssl=YES
-force_local_logins_ssl=YES
-rsa_cert_file=/etc/ssl/certs/vsftpd.pem
-rsa_private_key_file=/etc/ssl/private/vsftpd.pem
-ssl_tlsv1=YES
-ssl_sslv2=NO
-ssl_sslv3=NO
-```
-
-**Reiniciar:**
-
-```bash
-sudo systemctl restart vsftpd
-```
-
-**Explicación:**
-
-* Habilita **FTPS explícito** (TLS). Las credenciales y datos viajan cifrados. Con certificados autofirmados, los clientes mostrarán una advertencia inicial.
-
-### 4.7. Pruebas de conectividad y transferencia
+### 4.5. Pruebas de conectividad y transferencia
 
 **Verificar IP de la Raspberry (control):**
 
@@ -268,6 +190,7 @@ ftp 192.168.5.1
 # Usuario: ftpuser
 # Pass: (la definida)
 ```
+![5bb0d367-bb7f-41ed-88f9-89bd567ee3ef](https://github.com/user-attachments/assets/f8f78cf8-8b62-483e-a3bf-a5142f0b90f6)
 
 **Transferencia:**
 
@@ -280,33 +203,10 @@ ftp 192.168.5.1
 * **Modo de acceso**: Normal; **Usuario**: `ftpuser`; **Contraseña**: (…)
 * Conectar, crear carpeta de prueba y transferir un archivo.
 
-**Prueba con WinSCP:**
-
-* Protocolo: FTP; Servidor: `192.168.5.1`; Puerto: `21`; Usuario/Contraseña: (…)
-* Elegir **TLS/Explicito** si se habilitó FTPS.
-
-### 4.8. Verificación de logs
-
-**Ubicaciones útiles:**
-
-* Transferencias: `/var/log/vsftpd.log`
-* Autenticación: `/var/log/auth.log`
-
-**Comandos:**
-
-```bash
-sudo tail -n 50 /var/log/vsftpd.log
-sudo tail -n 50 /var/log/auth.log
-```
-
-**Explicación:**
-
-* `tail -n 50` muestra las últimas 50 líneas para confirmar inicio de sesión y archivos transferidos.
-
 ---
 
 ## 5. Conclusión
 
-Se instaló y configuró el servicio **FTP** en la Raspberry Pi utilizando **vsftpd**, asegurando el acceso con **usuarios locales**, directorios "enjaulados" (**chroot**) y **modo pasivo** para compatibilidad en la LAN. Se documentaron las pruebas de conectividad y transferencia con **FileZilla** y **WinSCP**, y se dejaron rutas de **logs** para validar la operación. De manera opcional, se añadió **FTPS** mediante **TLS** para cifrar credenciales y datos, fortaleciendo la seguridad del servicio.
+Se instaló y configuró el servicio FTP en la Raspberry Pi utilizando vsftpd, con usuarios locales y pruebas de conectividad y transferencia mediante FileZilla y WinSCP. Durante las pruebas iniciales se detectó un inconveniente: FileZilla no permitía subir archivos porque en /etc/vsftpd.conf no estaba habilitada la opción de escritura (write_enable=YES). Tras habilitar write_enable=YES y reiniciar el servicio, las cargas funcionaron correctamente. 
 
-Con esta entrega, la Raspberry Pi consolida su rol como **servidor de archivos** dentro de la red del grupo **192.168.5.0/24**, complementando los servicios ya implementados (SSH, Xorg para pruebas y DHCP) y dejando una base sólida para despliegues y prácticas futuras en el laboratorio.
+Con esta entrega, la Raspberry Pi cumple el rol de servidor de archivos dentro de la red del grupo 192.168.5.0/24, complementando los servicios ya implementados (SSH, Xorg para pruebas y DHCP) y dejando una base clara para prácticas futuras en el laboratorio.
