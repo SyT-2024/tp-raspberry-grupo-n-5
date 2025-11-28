@@ -20,6 +20,8 @@ Cada actividad está organizada en su propia carpeta e incluye un README con el 
 
 4. [Instalación y Configuración del Servicio FTP en Raspberry Pi (vsftpd)](https://github.com/SyT-2024/tp-raspberry-grupo-n-5/blob/main/Cuarta%20entrega%20-%20FTP/Informe.md)
 
+5. [Puerta de Enlace Wi-Fi → LAN en Raspberry Pi (NAT + DHCP activo)](https://github.com/SyT-2024/tp-raspberry-grupo-n-5/blob/main/Quinta%20entrega%20-%20internet%20-%20DNS/Informe.md)
+
 ---
 
 ## 📌 Notas
