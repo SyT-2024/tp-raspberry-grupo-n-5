@@ -1,215 +1,169 @@
-# Puerta de Enlace Wi-Fi→LAN en Raspberry Pi (NAT + DNS + DHCP activo)
+# Puerta de Enlace Wi-Fi → LAN en Raspberry Pi (NAT + DHCP activo)
 
 ## Índice
-1. [Introducción](#introducción)  
-2. [Objetivo del Informe](#objetivo-del-informe)  
-3. [Desarrollo Teórico](#desarrollo-teórico)  
-   - [Rol de la Raspberry como router](#rol-de-la-raspberry-como-router)  
-   - [NAT/masquerade y DNS](#natmasquerade-y-dns)  
-   - [Topología del grupo](#topología-del-grupo)  
-4. [Desarrollo Práctico (con glosario en cada paso)](#desarrollo-práctico-con-glosario-en-cada-paso)  
-   - [4.1 Conectar la Raspberry al Wi-Fi del WAP (wlan0)](#41-conectar-la-raspberry-al-wi-fi-del-wap-wlan0)  
-   - [4.2 Verificar IP estática en LAN (eth0) y DHCP activo](#42-verificar-ip-estática-en-lan-eth0-y-dhcp-activo)  
-   - [4.3 Habilitar el reenvío IP en el kernel](#43-habilitar-el-reenvío-ip-en-el-kernel)  
-   - [4.4 Configurar NAT (masquerade) LAN→Wi-Fi](#44-configurar-nat-masquerade-lanwi-fi)  
-   - [4.5 Ajustar/validar DNS para clientes](#45-ajustarvalidar-dns-para-clientes)  
-   - [4.6 Pruebas de conectividad y navegación](#46-pruebas-de-conectividad-y-navegación)  
-   - [4.7 Persistencia tras reinicio](#47-persistencia-tras-reinicio)  
-   - [4.8 Alternativa: hotspot de teléfono](#48-alternativa-hotspot-de-teléfono)  
-5. [Conclusión](#conclusión)
+1. Introducción  
+2. Objetivo  
+3. Desarrollo Teórico  
+4. Desarrollo Práctico (con glosario)  
+5. Pruebas  
+6. Conclusión  
 
 ---
 
-## Introducción
-En esta etapa, la **Raspberry Pi** consolida su rol como **servidor central** de la LAN del aula. Ya contamos con **Raspberry Pi OS Lite** + **SSH**, **Xorg** mínimo para reenvío X y **servidor DHCP** operativo en la subred del grupo **192.168.5.0/24** sobre `eth0` (conectada al **switch**).  
+## 1. Introducción
+En esta entrega configuramos la **Raspberry Pi** para que funcione como **puerta de enlace a Internet** de la red del grupo (**192.168.5.0/24**), manteniendo activo el **DHCP** configurado previamente en `eth0`.
 
-En esta entrega sumamos **salida a Internet** para los clientes de la LAN, usando `wlan0` conectada al **Wireless AP** del laboratorio (o un **hotspot** de celular). La Raspberry actuará como **puerta de enlace** con **NAT** y **reenvío IP**, manteniendo la configuración de **DHCP** de la entrega anterior.
-
-## Objetivo del Informe
-- Conectar `wlan0` al WAP (**SSID:** `SyT_2023`, **PWD:** `sistTele2023`) o a un hotspot.  
-- Mantener `eth0` en **192.168.5.1/24** y **DHCP** activo (entrega anterior).  
-- Habilitar **IP forwarding** y **NAT (masquerade)** para tráfico LAN→Internet.  
-- Asegurar **DNS funcional** para clientes.  
-- Dejar **evidencia de pruebas** (ping, traceroute, navegación).
+Para lograr la salida a Internet:
+- Conectamos **wlan0** a un Wi-Fi externo (hotspot de Windows).
+- Activamos **IP forwarding** en la Raspberry.
+- Configuramos **NAT (masquerade)**.
+- Probamos la navegación desde un cliente conectado al switch.
 
 ---
 
-## Desarrollo Teórico
-
-### Rol de la Raspberry como router
-Un **router** conecta redes distintas y **reenvía** paquetes entre interfaces. Aquí:  
-- **LAN:** `eth0` en **192.168.5.0/24** (Raspberry `192.168.5.1`, servidor DHCP).  
-- **Salida:** `wlan0` asociada al **WAP**/hotspot (IP por DHCP del AP).
-
-### NAT/masquerade y DNS
-- **IP forwarding:** el kernel permite que un paquete entre por una interfaz y salga por otra.  
-- **NAT (masquerade):** traduce IP privadas de la LAN a la IP externa de `wlan0` para que Internet pueda responder.  
-- **DNS:** los clientes resuelven nombres (p. ej. `google.com`) vía servidores DNS (Cloudflare/Google o los que indique la cátedra).
-
-### Topología del grupo
-```
-[ Notebooks ] --(switch)-- eth0 [ Raspberry Pi ] wlan0 )))) [ WAP/Hotspot ] ---> Internet
-       LAN 192.168.5.0/24            (router NAT)
-```
+## 2. Objetivo
+- Conectar la Raspberry al Wi-Fi externo mediante `wlan0`.  
+- Mantener `eth0` como LAN del grupo (192.168.5.1/24 + DHCP).  
+- Activar **IP forwarding**.  
+- Configurar **NAT**.  
+- Verificar la navegación desde la LAN.
 
 ---
 
-## Desarrollo Práctico (con glosario en cada paso)
+## 3. Desarrollo Teórico
 
-### 4.1 Conectar la Raspberry al Wi-Fi del WAP (wlan0)
+### Raspberry como Router
+La Raspberry conecta dos redes:
+- `eth0` → LAN 192.168.5.0/24  
+- `wlan0` → Internet  
+Y reenvía paquetes entre ambas.
 
-**Comandos**
+### IP Forwarding
+Permite que un paquete entre por `eth0` y salga por `wlan0`.  
+Es obligatorio para que funcione el enrutamiento.
+
+### NAT (Masquerade)
+Traduce las IP privadas de la LAN (192.168.5.x) a la IP pública de `wlan0`, permitiendo que Internet responda correctamente.
+
+### DHCP
+Asigna IPs del rango 192.168.5.x a los clientes conectados al switch.
+
+---
+
+## 4. Desarrollo Práctico (con glosario)
+
+### 4.1 Conectar la Raspberry al Wi-Fi (wlan0)
+
+**Archivo**
 ```bash
-nmcli radio wifi on
-nmcli dev wifi list
-sudo nmcli dev wifi connect "SyT_2023" password "sistTele2023" ifname wlan0
+sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+```
 
-ip addr show wlan0
+**Contenido**
+```
+network={
+    ssid="NOMBRE_DEL_HOTSPOT"
+    psk="CONTRASEÑA_DEL_HOTSPOT"
+    key_mgmt=WPA-PSK
+}
+```
+
+**Reinicio**
+```bash
+sudo reboot
+```
+
+**Verificación**
+```bash
+ip a
 ip route
-ping -c 3 1.1.1.1
-ping -c 3 google.com
+ping 8.8.8.8
 ```
 
-**Glosario (este paso)**
-- `nmcli radio wifi on`: enciende la radio Wi-Fi.  
-- `nmcli dev wifi list`: escanea y lista redes disponibles (verificar `SyT_2023`).  
-- `nmcli dev wifi connect`: asocia **wlan0** al SSID y solicita IP por **DHCP** al AP.  
-- `ip addr show wlan0`: verifica que **wlan0** está **UP** y con IP.  
-- `ip route`: debe existir **default route** por **wlan0**.  
-- `ping 1.1.1.1`: prueba de conectividad IP a Internet desde la Raspberry.  
-- `ping google.com`: prueba de **DNS** + conectividad.
+**Corrección de rutas**
+```bash
+sudo ip route del default
+sudo ip route add default via 192.168.137.1 dev wlan0
+```
+
+**Glosario**
+- `wpa_supplicant.conf`: archivo donde se define el Wi-Fi.  
+- `ip a`: muestra interfaces e IP.  
+- `ip route`: muestra rutas de salida.  
+- `ping`: prueba conectividad.  
+- `route del/add`: corrige rutas por defecto.
 
 ---
 
-### 4.2 Verificar IP estática en LAN (eth0) y DHCP activo
-
-**Comandos**
+### 4.2 Activar IP Forwarding
 ```bash
-ip addr show eth0
+sudo nano /etc/sysctl.conf
+```
+
+Agregar:
+```
+net.ipv4.ip_forward=1
+```
+
+Aplicar:
+```bash
+sudo sysctl -p
+```
+
+**Glosario**
+- `ip_forward`: habilita que la Raspberry reenvíe paquetes.
+- `sysctl -p`: aplica cambios en el kernel.
+
+---
+
+### 4.3 Configurar NAT (masquerade)
+```bash
+sudo iptables -t nat -F
+sudo iptables -t nat -A POSTROUTING -s 192.168.5.0/24 -o wlan0 -j MASQUERADE
+sudo iptables -t nat -L
+```
+
+**Glosario**
+- `iptables`: firewall para reglas de red.
+- `POSTROUTING`: etapa donde se modifica la IP origen.
+- `MASQUERADE`: usa la IP externa de wlan0 como IP pública.
+- `-F`: limpia reglas previas.
+- `-L`: lista reglas activas.
+
+---
+
+### 4.4 Verificar DHCP
+```bash
 sudo systemctl status isc-dhcp-server --no-pager
-
-# (solo si hiciera falta reponer el perfil de red de la entrega anterior)
-sudo nmcli con add type ethernet ifname eth0 con-name lan-grupo5 ipv4.method manual ipv4.addresses 192.168.5.1/24
-sudo nmcli con mod lan-grupo5 ipv4.gateway 192.168.5.1
-sudo nmcli con mod lan-grupo5 ipv4.dns "1.1.1.1 8.8.8.8"
-sudo nmcli con up lan-grupo5
 ```
 
-**Glosario (este paso)**
-- `ip addr show eth0`: confirma IP **192.168.5.1/24** en `eth0`.  
-- `systemctl status isc-dhcp-server`: verifica que el **DHCP** esté activo.  
-- `nmcli con add/mod/up`: crea/modifica/levanta perfil estático para `eth0`.
+**Glosario**
+- `isc-dhcp-server`: asigna IPs a los clientes de la LAN.
 
 ---
 
-### 4.3 Habilitar el reenvío IP en el kernel
+## 5. Pruebas
 
-**Comandos**
+### En la Raspberry
 ```bash
-echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
-echo 'net.ipv4.ip_forward=1' | sudo tee /etc/sysctl.d/99-ipforward.conf
-sudo sysctl --system
+ping 8.8.8.8
+ping google.com
 ```
 
-**Glosario (este paso)**
-- `ip_forward=1`: habilita **IP forwarding** (reenvío entre interfaces).  
-- `/proc/sys/...`: cambio **temporal** hasta reinicio.  
-- `/etc/sysctl.d/...` + `sysctl --system`: cambio **persistente**.
-
----
-
-### 4.4 Configurar NAT (masquerade) LAN→Wi-Fi
-
-**Comandos**
+### En un cliente conectado al switch
 ```bash
-sudo iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE
-sudo iptables -A FORWARD -i eth0 -o wlan0 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
-sudo iptables -A FORWARD -i wlan0 -o eth0 -m state --state ESTABLISHED,RELATED -j ACCEPT
+ip a                 # debe tener 192.168.5.x
+ip route             # default via 192.168.5.1
+ping 192.168.5.1     # prueba gateway
+ping 8.8.8.8         # salida a Internet
+ping google.com      # DNS funcionando
 ```
-
-**Glosario (este paso)**
-- `-t nat -A POSTROUTING ... MASQUERADE`: traduce IPs privadas LAN a la IP de **wlan0**.  
-- `FORWARD` con `NEW,ESTABLISHED,RELATED`: permite tráfico de ida y retorno entre `eth0` y `wlan0` con control de estado.
 
 ---
 
-### 4.5 Ajustar/validar DNS para clientes
+## 6. Conclusión
+La Raspberry Pi quedó configurada como **router NAT**, conectando la LAN del grupo a Internet mediante `wlan0`.  
+Se activó el **IP forwarding**, se configuró **NAT**, se mantuvo el **DHCP** existente y se verificó la conectividad desde múltiples clientes.
 
-**Ejemplo en `dhcpd.conf` (si usaste *isc-dhcp-server*)**
-```conf
-option domain-name-servers 1.1.1.1, 8.8.8.8;
-```
-
-**Comandos**
-```bash
-sudo systemctl restart isc-dhcp-server
-
-# En un cliente Linux:
-nmcli con down <perfil> && nmcli con up <perfil>
-# o
-ip addr flush dev <iface> && sudo dhclient -r && sudo dhclient
-```
-
-**Glosario (este paso)**
-- `option domain-name-servers`: DNS entregados por DHCP a los clientes.  
-- `systemctl restart`: reinicia el servicio DHCP para aplicar cambios.  
-- `nmcli con down/up` o `dhclient`: renueva concesión DHCP en el cliente.
-
----
-
-### 4.6 Pruebas de conectividad y navegación (desde un cliente de la LAN)
-
-**Comandos**
-```bash
-ip addr
-ip route
-ping -c 3 192.168.5.1
-ping -c 3 1.1.1.1
-ping -c 3 google.com
-traceroute 8.8.8.8
-```
-
-**Glosario (este paso)**
-- `ip addr`: confirma IP **192.168.5.x/24** recibida por DHCP.  
-- `ip route`: **default gateway** debe ser **192.168.5.1**.  
-- `ping 192.168.5.1`: prueba puerta de enlace (Raspberry).  
-- `ping 1.1.1.1`: prueba salida a Internet por **IP**.  
-- `ping google.com`: prueba **DNS** + salida.  
-- `traceroute`: primer salto **192.168.5.1**; luego red del WAP/hotspot.
-
----
-
-### 4.7 Persistencia tras reinicio (iptables y sysctl)
-
-**Comandos**
-```bash
-sudo apt install -y iptables-persistent
-sudo netfilter-persistent save
-sudo systemctl enable netfilter-persistent
-```
-
-**Glosario (este paso)**
-- `iptables-persistent` / `netfilter-persistent`: guardan y restauran reglas **iptables** al iniciar.  
-- `enable`: activa restauración automática al boot.  
-- (Recordatorio) `99-ipforward.conf`: asegura **ip_forward=1** permanente.
-
----
-
-### 4.8 Alternativa: hotspot de teléfono
-
-**Comandos (ejemplo)**
-```bash
-nmcli radio wifi on
-sudo nmcli dev wifi connect "MiHotspot" password "ClaveDelCel" ifname wlan0
-# El resto (IP forwarding, NAT, DNS, pruebas) es idéntico a los pasos anteriores.
-```
-
-**Glosario (este paso)**
-- Igual que el paso **4.1**, solo cambia el **SSID/clave** del hotspot.
-
----
-
-## Conclusión
-Se habilitó **acceso a Internet** para la LAN **192.168.5.0/24** manteniendo el **DHCP** previo. La Raspberry, conectada por **wlan0** al **WAP** (o hotspot), opera como **router** gracias a **IP forwarding** y **NAT**. Se ajustó **DNS** para clientes y se verificó conectividad con **ping** y **traceroute**. Finalmente, se dejó **persistencia** de reglas para que la solución sobreviva a reinicios.  
-
-**Resultado:** los equipos del grupo navegan a Internet a través de la Raspberry, cumpliendo los requisitos de la consigna.
+**Resultado:**  
+Los equipos de la LAN navegan a Internet correctamente a través de la Raspberry Pi, cumpliendo con los requisitos de la entrega final.
