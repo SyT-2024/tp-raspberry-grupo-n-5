@@ -10,14 +10,13 @@
 
 ---
 
-## 1. Introducción
-En esta entrega configuramos la **Raspberry Pi** para que funcione como **puerta de enlace a Internet** de la red del grupo (**192.168.5.0/24**), manteniendo activo el **DHCP** configurado previamente en `eth0`.
+## 2. Introducción
 
-Para lograr la salida a Internet:
-- Conectamos **wlan0** a un Wi-Fi externo (hotspot de Windows).
-- Activamos **IP forwarding** en la Raspberry.
-- Configuramos **NAT (masquerade)**.
-- Probamos la navegación desde un cliente conectado al switch.
+A lo largo de las entregas anteriores, la Raspberry Pi fue configurada progresivamente para cumplir distintos roles dentro de la red del aula. En la primera etapa se instaló **Raspberry Pi OS Lite** y se habilitó el acceso remoto mediante **SSH**, permitiendo la administración sin entorno gráfico. Posteriormente, se incorporó **Xorg** para habilitar el reenvío de aplicaciones gráficas a través de SSH.
+
+En una siguiente entrega, la Raspberry asumió el rol de **servidor DHCP**, asignando direcciones IP dentro de la red del grupo **192.168.5.0/24** a través de la interfaz `eth0`. Luego, se instaló y configuró el servicio **FTP** utilizando vsftpd, permitiendo la transferencia de archivos entre los equipos del laboratorio y la Raspberry.
+
+Con estas bases ya implementadas, en esta entrega la Raspberry Pi se expandirá para actuar además como **puerta de enlace** hacia Internet para los dispositivos conectados al switch del grupo.
 
 ---
 
