@@ -161,8 +161,13 @@ ping google.com      # DNS funcionando
 ---
 
 ## 6. Conclusión
-La Raspberry Pi quedó configurada como **router NAT**, conectando la LAN del grupo a Internet mediante `wlan0`.  
-Se activó el **IP forwarding**, se configuró **NAT**, se mantuvo el **DHCP** existente y se verificó la conectividad desde múltiples clientes.
 
-**Resultado:**  
-Los equipos de la LAN navegan a Internet correctamente a través de la Raspberry Pi, cumpliendo con los requisitos de la entrega final.
+Durante esta entrega se logró completar la configuración de la Raspberry Pi como puerta de enlace para la red del grupo, permitiendo que los equipos conectados al switch accedan a Internet a través de la interfaz inalámbrica `wlan0`. El proceso requirió no solo aplicar los conceptos de NAT, IP forwarding y administración de rutas, sino también resolver una serie de dificultades que surgieron durante la implementación práctica.
+
+Uno de los principales inconvenientes fue la conexión inicial de `wlan0` al punto de acceso: la Raspberry se asociaba al Wi-Fi, pero no obtenía una dirección IP válida, lo que impedía cualquier comunicación. En varios intentos, la interfaz aparecía como *off/any*, lo que obligó a revisar cuidadosamente la configuración del archivo `wpa_supplicant.conf` y asegurarse de utilizar el SSID y la contraseña correctos del hotspot. Más adelante, se presentaron problemas al realizar pruebas de conectividad: la Raspberry tenía IP en `wlan0`, pero no podía hacer ping hacia Internet. Esto se debía a la presencia de dos rutas por defecto simultáneas (`eth0` y `wlan0`), lo que provocaba que el tráfico saliera por la interfaz equivocada. Fue necesario eliminar la ruta incorrecta y establecer manualmente la ruta por defecto hacia el gateway del hotspot.
+
+Otro desafío importante fue la configuración de NAT. En los primeros intentos, la regla de iptables no incluía correctamente la subred 192.168.5.0/24, lo que impedía que la LAN pudiera acceder a Internet incluso cuando la Raspberry sí tenía salida. Además, surgió un conflicto con el servicio `dnsmasq`, que se activó de manera no intencional y mostraba errores al reiniciar; esto requería deshabilitarlo para evitar interferencias con el servicio DHCP configurado previamente.
+
+Finalmente, hubo cálidas pruebas de funcionamiento donde el hotspot de Windows aparecía como conectado, pero sin compartir realmente Internet. Recién tras activar correctamente la función de “Zona con cobertura inalámbrica móvil” se pudo establecer una conexión estable que permitiera a la Raspberry convertirse en un router funcional.
+
+A pesar de estas dificultades, cada problema fue identificado y resuelto, consolidando no solo el funcionamiento del sistema, sino también la comprensión de conceptos fundamentales de redes. Como resultado final, toda la LAN del grupo obtiene salida a Internet a través de la Raspberry Pi, cumpliendo plenamente con los objetivos de la entrega.
