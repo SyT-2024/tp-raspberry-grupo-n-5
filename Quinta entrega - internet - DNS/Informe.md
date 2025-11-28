@@ -121,6 +121,7 @@ sudo iptables -t nat -F
 sudo iptables -t nat -A POSTROUTING -s 192.168.5.0/24 -o wlan0 -j MASQUERADE
 sudo iptables -t nat -L
 ```
+![cdbc76a6-f1f0-4c6e-960d-3f6b769de123](https://github.com/user-attachments/assets/31d979f9-6c2e-4da5-89d8-190c8b9e5eb4)
 
 **Glosario**
 - `iptables`: firewall para reglas de red.
@@ -157,6 +158,7 @@ ping 192.168.5.1     # prueba gateway
 ping 8.8.8.8         # salida a Internet
 ping google.com      # DNS funcionando
 ```
+![50d7a7ed-5454-41d9-a226-d43dd300ce5a](https://github.com/user-attachments/assets/fa5d28f3-507b-41e2-9042-1cf376455aa6)
 
 ---
 
